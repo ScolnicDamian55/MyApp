@@ -50,17 +50,17 @@ const styles = StyleSheet.create({
     flex:1,
     alignItems:'center',
     padding:20,
-    backgroundColor:'#f0f0f0'
+    backgroundColor:'#f0f0f0',
+    justifyContent:'space-between',
+    paddingVertical:75
   },
   title: {
     fontSize:26,
     fontWeight:'bold',
     paddingBottom:10,
-    marginBottom:40,
   },
   title1: {
     fontSize:20,
-    marginBottom:40,
     paddingBottom:100,
     textAlign:'center'
   },
@@ -73,7 +73,6 @@ const styles = StyleSheet.create({
     padding:15,
     marginHorizontal:10,
     borderRadius:10,
-    marginBottom:370,
   },
   selectedButton: {
     backgroundColor:'#2ecc71'
@@ -83,7 +82,7 @@ const styles = StyleSheet.create({
     fontSize:18,
   },
   continueButton: {
-    backgroundColor:'#3498db',
+    backgroundColor:'#2ecc71',
     paddingVertical:12,
     paddingHorizontal:40,
     borderRadius:10
