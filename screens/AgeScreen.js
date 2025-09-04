@@ -44,16 +44,16 @@ const styles = StyleSheet.create({
     alignItems:'center',
     padding:20,
     backgroundColor:'#f9f9f9',
+    justifyContent:'space-between',
+    paddingVertical:75
   },
   title: {
     fontSize:26,
     fontWeight:'bold',
     paddingBottom:10,
-    marginBottom:40,
   },
   title1: {
     fontSize:20,
-    marginBottom:40,
     paddingBottom:100,
     textAlign:'center'
   },
@@ -65,11 +65,10 @@ const styles = StyleSheet.create({
     padding:12,
     fontSize:18,
     textAlign:'center',
-    marginBottom:421,
     backgroundColor:'#fff'
   },
   button: {
-    backgroundColor:'#3498db',
+    backgroundColor:'#2ecc71',
     paddingVertical:12,
     paddingHorizontal:40,
     borderRadius:10
