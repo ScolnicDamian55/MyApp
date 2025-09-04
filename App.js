@@ -6,6 +6,7 @@ import HomeScreen from './screens/HomeScreen';
 import GenderScreen from './screens/GenderScreen';
 import AgeScreen from './screens/AgeScreen';
 import BodyScreen from './screens/BodyScreen';
+import WeightScreen from './screens/WeightScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -37,6 +38,11 @@ export default function App() {
           name="Body"
           component={BodyScreen}
           options={{ title: 'Рост и вес' }}
+        />
+        <Stack.Screen
+          name="Weight"
+          component={WeightScreen}
+          options={{ title: 'Желаемый вес' }}
         />
       </Stack.Navigator>
     </NavigationContainer>
