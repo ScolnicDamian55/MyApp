@@ -66,9 +66,16 @@ export default function HomeScreen({ route, navigation }) {
   const runAnalysis = async (uri) => {
     setLoading(true);
     setError(null);
-    const data = await analyzeFoodPhoto(uri);
-    if (data) setResult(data);
-    else setError('Не удалось распознать блюдо. Убедитесь что Ollama запущена.');
+    console.log('runAnalysis вызван с uri:', uri);
+    try {
+      const data = await analyzeFoodPhoto(uri);
+      console.log('Результат analyzeFoodPhoto:', data);
+      if (data) setResult(data);
+      else setError('Не удалось распознать блюдо. Попробуйте ещё раз.');
+    } catch (e) {
+      console.error('runAnalysis ошибка:', e.message);
+      setError('Ошибка: ' + e.message);
+    }
     setLoading(false);
   };
 
@@ -140,7 +147,10 @@ export default function HomeScreen({ route, navigation }) {
                 {today.toLocaleString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' })}
               </Text>
             </View>
-            <TouchableOpacity style={styles.avatarBtn}>
+            <TouchableOpacity
+              style={styles.avatarBtn}
+              onPress={() => navigation.navigate('Profile')}
+            >
               <Text style={styles.avatarText}>👤</Text>
             </TouchableOpacity>
           </View>

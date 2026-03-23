@@ -3,6 +3,8 @@ import {
   View, Text, StyleSheet, TouchableOpacity,
   Animated, StatusBar, ScrollView,
 } from 'react-native';
+import { doc, updateDoc } from 'firebase/firestore';
+import { auth, db } from '../services/firebase';
 
 const BLUE = '#4A7BF7';
 const DARK = '#1A1A2E';
@@ -59,12 +61,10 @@ export default function PlanScreen({ route, navigation }) {
 
   const termText = diffKg === 0 ? '—' : `${months} ${monthWord(months)}`;
 
-  // Macros estimate
   const protein = targetCalories ? Math.round((targetCalories * 0.30) / 4) : 0;
   const carbs   = targetCalories ? Math.round((targetCalories * 0.45) / 4) : 0;
   const fat     = targetCalories ? Math.round((targetCalories * 0.25) / 9) : 0;
 
-  // Animations
   const fadeAnim  = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(40)).current;
   const scaleCard = useRef(new Animated.Value(0.92)).current;
@@ -78,15 +78,38 @@ export default function PlanScreen({ route, navigation }) {
     ]).start();
   }, []);
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     Animated.sequence([
-      Animated.timing(btnScale, { toValue: 0.94, duration: 90, useNativeDriver: true }),
+      Animated.timing(btnScale, { toValue: 0.94, duration: 90,  useNativeDriver: true }),
       Animated.timing(btnScale, { toValue: 1,    duration: 150, useNativeDriver: true }),
-    ]).start(() => navigation.navigate('TrainingAsk', {
+    ]).start();
+
+    // Сохраняем данные в Firebase
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        await updateDoc(doc(db, 'users', user.uid), {
+          onboardingDone: true,
+          gender,
+          age: ageNum,
+          height: heightNum,
+          currentWeight: currentWeightNum,
+          desiredWeight: desiredWeightNum,
+          activity,
+          targetCalories,
+          goal,
+          termText,
+        });
+      }
+    } catch (e) {
+      console.warn('Ошибка сохранения:', e);
+    }
+
+    navigation.navigate('TrainingAsk', {
       gender, age: ageNum, height: heightNum,
       currentWeight: currentWeightNum, desiredWeight: desiredWeightNum,
       activity, targetCalories, goal, termText,
-    }));
+    });
   };
 
   return (
@@ -120,7 +143,6 @@ export default function PlanScreen({ route, navigation }) {
             </View>
           </View>
 
-          {/* Macro bars */}
           <View style={styles.macroSection}>
             {[
               { label: 'Белки',    val: protein, unit: 'г', pct: 30, color: BLUE },
@@ -138,7 +160,7 @@ export default function PlanScreen({ route, navigation }) {
           </View>
         </Animated.View>
 
-        {/* Stat cards row */}
+        {/* Stat cards */}
         <Animated.View style={[styles.statsRow, { opacity: fadeAnim }]}>
           {[
             { icon: '⏳', label: 'Срок',         val: termText },
@@ -156,7 +178,7 @@ export default function PlanScreen({ route, navigation }) {
         {/* Info cards */}
         <Animated.View style={[styles.infoSection, { opacity: fadeAnim }]}>
           {[
-            { icon: '💡', title: 'Как это работает', text: `Ежедневный ${desiredWeightNum < currentWeightNum ? 'дефицит' : 'профицит'} в ${dailyDelta} ккал обеспечит плавное и безопасное изменение веса.` },
+            { icon: '💡', title: 'Как это работает', text: `Ежедневный ${desiredWeightNum < currentWeightNum ? 'дефицит' : 'профицит'} в ${dailyDelta} ккал обеспечит плавное изменение веса.` },
             { icon: '📊', title: 'Ваши параметры', text: `${gender} · ${ageNum} лет · ${heightNum} см · ${currentWeightNum} кг → ${desiredWeightNum} кг` },
           ].map((c) => (
             <View key={c.title} style={styles.infoCard}>
@@ -195,7 +217,6 @@ const styles = StyleSheet.create({
 
   scroll: { paddingHorizontal: 20, paddingTop: 64, paddingBottom: 10 },
 
-  /* Header */
   header: { marginBottom: 24 },
   badge: {
     alignSelf: 'flex-start', backgroundColor: '#EDFFF6',
@@ -208,7 +229,6 @@ const styles = StyleSheet.create({
   },
   subtitle: { fontSize: 14, color: '#8E9BB5', lineHeight: 20 },
 
-  /* Hero card */
   heroCard: {
     backgroundColor: '#fff', borderRadius: 24, padding: 22,
     shadowColor: DARK, shadowOpacity: 0.08, shadowRadius: 16,
@@ -233,7 +253,6 @@ const styles = StyleSheet.create({
   macroBarFill: { height: '100%', borderRadius: 3 },
   macroVal: { fontSize: 12, fontWeight: '700', color: DARK, width: 40, textAlign: 'right' },
 
-  /* Stats row */
   statsRow: { flexDirection: 'row', gap: 10, marginBottom: 14 },
   statCard: {
     flex: 1, backgroundColor: '#fff', borderRadius: 16, padding: 14, alignItems: 'center',
@@ -243,7 +262,6 @@ const styles = StyleSheet.create({
   statVal: { fontSize: 13, fontWeight: '800', color: DARK, textAlign: 'center', marginBottom: 2 },
   statLabel: { fontSize: 10, color: '#8E9BB5', textAlign: 'center' },
 
-  /* Info cards */
   infoSection: { gap: 10, marginBottom: 24 },
   infoCard: {
     backgroundColor: '#fff', borderRadius: 18, padding: 16,
@@ -255,7 +273,6 @@ const styles = StyleSheet.create({
   infoTitle: { fontSize: 14, fontWeight: '700', color: DARK, marginBottom: 4 },
   infoBody: { fontSize: 13, color: '#8E9BB5', lineHeight: 19 },
 
-  /* CTA */
   continueBtn: {
     backgroundColor: BLUE, borderRadius: 16, paddingVertical: 17, alignItems: 'center',
     shadowColor: BLUE, shadowOpacity: 0.35, shadowRadius: 14,

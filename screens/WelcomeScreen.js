@@ -25,20 +25,18 @@ export default function WelcomeScreen({ navigation }) {
     Animated.sequence([
       Animated.timing(btnScale, { toValue: 0.94, duration: 90,  useNativeDriver: true }),
       Animated.timing(btnScale, { toValue: 1,    duration: 150, useNativeDriver: true }),
-    ]).start(() => navigation.navigate('Gender'));
+    ]).start(() => navigation.navigate('Register'));
   };
 
   return (
     <View style={styles.screen}>
       <StatusBar barStyle="light-content" />
 
-      {/* Background image */}
       <ImageBackground
         source={require('../assets/logo.png')}
         style={styles.bg}
         resizeMode="cover"
       >
-        {/* Dark gradient layers */}
         <View style={styles.gradientTop} />
         <View style={styles.gradientBottom} />
       </ImageBackground>
@@ -76,15 +74,14 @@ export default function WelcomeScreen({ navigation }) {
           Персональный план питания и тренировок за 2 минуты
         </Text>
 
-        {/* CTA */}
+        {/* Кнопка Начать */}
         <Animated.View style={{ transform: [{ scale: btnScale }] }}>
           <TouchableOpacity style={styles.btn} onPress={handlePress} activeOpacity={0.9}>
             <Text style={styles.btnText}>Начать →</Text>
           </TouchableOpacity>
         </Animated.View>
 
-        {/* Fine print */}
-        <Text style={styles.finePrint}>Бесплатно · Без регистрации</Text>
+        <Text style={styles.finePrint}>Бесплатно · Без ограничений</Text>
       </Animated.View>
     </View>
   );
@@ -93,11 +90,7 @@ export default function WelcomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#0A0A14' },
 
-  /* Background */
-  bg: {
-    position: 'absolute',
-    width, height,
-  },
+  bg: { position: 'absolute', width, height },
   gradientTop: {
     position: 'absolute', top: 0, left: 0, right: 0, height: height * 0.4,
     backgroundColor: 'rgba(10,10,20,0.45)',
@@ -107,7 +100,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(10,10,20,0.82)',
   },
 
-  /* Top badge */
   topBadge: {
     position: 'absolute', top: 58, alignSelf: 'center',
     flexDirection: 'row', alignItems: 'center', gap: 7,
@@ -121,13 +113,11 @@ const styles = StyleSheet.create({
   },
   badgeText: { color: '#fff', fontSize: 13, fontWeight: '600' },
 
-  /* Bottom */
   bottom: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
     paddingHorizontal: 28, paddingBottom: 52, paddingTop: 24,
   },
 
-  /* Pills */
   pillsRow: { flexDirection: 'row', gap: 8, marginBottom: 24 },
   pill: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
@@ -138,7 +128,6 @@ const styles = StyleSheet.create({
   pillIcon: { fontSize: 13 },
   pillText: { color: '#fff', fontSize: 12, fontWeight: '600' },
 
-  /* Text */
   title: {
     fontSize: 52, fontWeight: '800', color: '#fff',
     lineHeight: 58, letterSpacing: -1.5, marginBottom: 12,
@@ -148,13 +137,12 @@ const styles = StyleSheet.create({
     lineHeight: 23, marginBottom: 32,
   },
 
-  /* Button */
   btn: {
     backgroundColor: BLUE, borderRadius: 18,
     paddingVertical: 18, alignItems: 'center',
     shadowColor: BLUE, shadowOpacity: 0.5,
     shadowRadius: 20, shadowOffset: { width: 0, height: 8 }, elevation: 10,
-    marginBottom: 16,
+    marginBottom: 12,
   },
   btnText: { color: '#fff', fontSize: 18, fontWeight: '800', letterSpacing: 0.3 },
 

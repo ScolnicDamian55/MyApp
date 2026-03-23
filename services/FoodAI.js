@@ -1,4 +1,4 @@
-const LAPTOP_IP = '192.168.10.136';
+const LAPTOP_IP = '192.168.11.17';
 const OLLAMA_URL = `http://${LAPTOP_IP}:11434`;
 
 export async function analyzeFoodPhoto(imageUri) {
@@ -7,7 +7,7 @@ export async function analyzeFoodPhoto(imageUri) {
 
     const response = await fetch(imageUri);
     const blob = await response.blob();
-    
+
     const base64 = await new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result.split(',')[1]);
@@ -44,6 +44,7 @@ Do NOT use placeholder values. Analyze the actual food in the image.`,
       })
     });
 
+    console.log('Статус ответа:', ollamaResponse.status);
     const data = await ollamaResponse.json();
     console.log('Ответ Ollama:', data.response);
 
