@@ -19,28 +19,43 @@ export default function RegisterScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const fadeAnim  = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(40)).current;
-  const btnScale  = useRef(new Animated.Value(1)).current;
+  const btnScale = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(fadeAnim,  { toValue: 1, duration: 600, useNativeDriver: true }),
+      Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
       Animated.timing(slideAnim, { toValue: 0, duration: 500, useNativeDriver: true }),
     ]).start();
   }, []);
+
+  const validateEmail = (email) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+  };
+
+  const validatePassword = (password) => {
+    const regex = /^(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{6,}$/;
+    return regex.test(password);
+  };
 
   const handleRegister = async () => {
     if (!name || !email || !password || !confirmPassword) {
       setError('Заполните все поля');
       return;
     }
+    if (!validateEmail(email)) {
+      setError('Введите корректный email (например: name@gmail.com)');
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError('Пароли не совпадают');
       return;
     }
-    if (password.length < 6) {
-      setError('Пароль должен быть минимум 6 символов');
+    if (!validatePassword(password)) {
+      setError('Пароль должен содержать минимум 6 символов, 1 заглавную букву и 1 специальный символ');
       return;
     }
 

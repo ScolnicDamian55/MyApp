@@ -27,6 +27,11 @@ export default function LoginScreen({ navigation }) {
         ]).start();
     }, []);
 
+    const validateEmail = (email) => {
+        const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return regex.test(email);
+    };
+
     const handleLogin = async () => {
         console.log('handleLogin вызван');
         console.log('email:', email);
@@ -34,6 +39,11 @@ export default function LoginScreen({ navigation }) {
 
         if (!email || !password) {
             setError('Заполните все поля');
+            return;
+        }
+
+        if (!validateEmail(email)) {
+            setError('Введите корректный email (например: name@gmail.com)');
             return;
         }
 
