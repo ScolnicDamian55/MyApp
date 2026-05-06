@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  Animated, StatusBar, ScrollView, Switch, Alert,
+  Animated, StatusBar, ScrollView, Switch, Alert, TextInput,
 } from 'react-native';
 import { signOut } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../services/firebase';
 
 const BLUE = '#4A7BF7';
@@ -12,6 +12,7 @@ const DARK = '#1A1A2E';
 
 export default function ProfileScreen({ navigation }) {
   const [userData, setUserData] = useState(null);
+  const [editableData, setEditableData] = useState({});
   const [reminder, setReminder] = useState(false);
 
   const fadeAnim  = useRef(new Animated.Value(0)).current;
@@ -33,6 +34,7 @@ export default function ProfileScreen({ navigation }) {
         const userDoc = await getDoc(doc(db, 'users', user.uid));
         if (userDoc.exists()) {
           setUserData(userDoc.data());
+          setEditableData(userDoc.data()); // копия для редактирования
         }
       }
     } catch (e) {
@@ -40,58 +42,40 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
-  const handleLogout = () => {
-  Alert.alert(
-    'Выйти из аккаунта',
-    'Вы уверены что хотите выйти?',
-    [
-      { text: 'Отмена', style: 'cancel' },
-      {
-        text: 'Выйти',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await signOut(auth);
-          } catch (e) {
-            console.warn('Ошибка выхода:', e);
-          }
-        },
-      },
-    ]
-  );
-};
-
-  const goalDirection = userData
-    ? userData.desiredWeight > userData.currentWeight
-      ? '📈 Набор массы'
-      : userData.desiredWeight < userData.currentWeight
-        ? '📉 Похудение'
-        : '⚖️ Поддержание'
-    : '—';
-
-  // Расчёт даты окончания
-  const getEndDate = () => {
-    if (!userData?.termText || userData.termText === '—') return '—';
-    const months = parseInt(userData.termText);
-    if (isNaN(months)) return '—';
-    const date = new Date();
-    date.setMonth(date.getMonth() + months);
-    return date.toLocaleString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+  const handleSave = async () => {
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        await updateDoc(doc(db, 'users', user.uid), editableData);
+        Alert.alert('Успех', 'Данные профиля обновлены');
+        setUserData(editableData);
+      }
+    } catch (e) {
+      console.warn('Ошибка сохранения:', e);
+      Alert.alert('Ошибка', 'Не удалось сохранить изменения');
+    }
   };
 
-  const rows = userData ? [
-    { label: 'Имя', value: userData.name || '—' },
-    { label: 'Пол', value: userData.gender || '—' },
-    { label: 'Возраст', value: userData.age ? `${userData.age}` : '—' },
-    { label: 'Рост', value: userData.height ? `${userData.height} см` : '—' },
-    { label: 'Вес', value: userData.currentWeight ? `${userData.currentWeight} кг` : '—' },
-    { label: 'Цель по весу', value: userData.desiredWeight ? `${userData.desiredWeight} кг` : '—' },
-    { label: 'Уровень активности', value: userData.activity || '—' },
-    { label: 'Цель', value: goalDirection },
-    { label: 'Срок', value: userData.termText || '—' },
-    { label: 'Дата начала', value: new Date().toLocaleString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' }) },
-    { label: 'Дата окончания', value: getEndDate() },
-  ] : [];
+  const handleLogout = () => {
+    Alert.alert(
+      'Выйти из аккаунта',
+      'Вы уверены что хотите выйти?',
+      [
+        { text: 'Отмена', style: 'cancel' },
+        {
+          text: 'Выйти',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await signOut(auth);
+            } catch (e) {
+              console.warn('Ошибка выхода:', e);
+            }
+          },
+        },
+      ]
+    );
+  };
 
   return (
     <View style={styles.screen}>
@@ -113,17 +97,17 @@ export default function ProfileScreen({ navigation }) {
 
           {/* Avatar */}
           <View style={styles.avatarSection}>
-  <View style={styles.avatar}>
-    <Text style={styles.avatarIcon}>👤</Text>
-  </View>
-  <Text style={styles.userName}>{userData?.name || 'Пользователь'}</Text>
-  <Text style={styles.userEmail}>{auth.currentUser?.email || '—'}</Text>
-  <View style={styles.caloriesBadge}>
-    <Text style={styles.caloriesText}>
-      🔥 {userData?.targetCalories || '—'} ккал / день
-    </Text>
-  </View>
-</View>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarIcon}>👤</Text>
+            </View>
+            <Text style={styles.userName}>{editableData?.name || 'Пользователь'}</Text>
+            <Text style={styles.userEmail}>{auth.currentUser?.email || '—'}</Text>
+            <View style={styles.caloriesBadge}>
+              <Text style={styles.caloriesText}>
+                🔥 {editableData?.targetCalories || '—'} ккал / день
+              </Text>
+            </View>
+          </View>
 
           {/* Profile card */}
           <View style={styles.card}>
@@ -138,19 +122,32 @@ export default function ProfileScreen({ navigation }) {
               />
             </View>
 
-            {/* Data rows */}
-            {rows.map((row, i) => (
-              <View
-                key={row.label}
-                style={[styles.row, i < rows.length - 1 && styles.rowBorder]}
-              >
+            {[
+              { key: 'name', label: 'Имя' },
+              { key: 'gender', label: 'Пол' },
+              { key: 'age', label: 'Возраст', numeric: true },
+              { key: 'height', label: 'Рост', numeric: true },
+              { key: 'currentWeight', label: 'Вес', numeric: true },
+              { key: 'desiredWeight', label: 'Цель по весу', numeric: true },
+              { key: 'activity', label: 'Уровень активности' },
+              { key: 'termText', label: 'Срок' },
+            ].map((row, i) => (
+              <View key={row.key} style={[styles.row, i < 7 && styles.rowBorder]}>
                 <Text style={styles.rowLabel}>{row.label}</Text>
-                <View style={styles.rowRight}>
-                  <Text style={styles.rowValue}>{row.value}</Text>
-                </View>
+                <TextInput
+                  style={styles.rowValue}
+                  value={String(editableData[row.key] || '')}
+                  onChangeText={(text) => setEditableData({ ...editableData, [row.key]: text })}
+                  keyboardType={row.numeric ? 'numeric' : 'default'}
+                />
               </View>
             ))}
           </View>
+
+          {/* Save button */}
+          <TouchableOpacity style={styles.saveBtn} onPress={handleSave} activeOpacity={0.85}>
+            <Text style={styles.saveText}>Сохранить изменения</Text>
+          </TouchableOpacity>
 
           {/* Logout button */}
           <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout} activeOpacity={0.85}>
@@ -224,9 +221,17 @@ const styles = StyleSheet.create({
   rowChevron: { fontSize: 18, color: '#B0BACE' },
 
   logoutBtn: {
-    backgroundColor: '#FFF0F0', borderRadius: 16,
+    backgroundColor: '#ffd8d8', borderRadius: 16,
     paddingVertical: 16, alignItems: 'center',
     borderWidth: 1.5, borderColor: '#F76A6A',
+    marginTop: 12,
+  },
+  saveBtn: {
+    backgroundColor: '#e3e3ff', borderRadius: 16,
+    paddingVertical: 16, alignItems: 'center',
+    borderWidth: 1.5, borderColor: '#7d6af7',
+    paddingBottom: 16,
   },
   logoutText: { fontSize: 16, fontWeight: '700', color: '#F76A6A' },
+  saveText: { fontSize: 16, fontWeight: '700', color: '#6a6ff7' },
 });

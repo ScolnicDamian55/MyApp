@@ -1,10 +1,14 @@
-const LAPTOP_IP = '192.168.11.17';
-const OLLAMA_URL = `http://${LAPTOP_IP}:11434`;
+// services/FoodAI.js
+import { Platform } from 'react-native';
+import { API_URL_WEB, API_URL_MOBILE, MODEL_NAME } from '@env';
+
+const OLLAMA_URL = Platform.OS === 'web' ? API_URL_WEB : API_URL_MOBILE;
 
 export async function analyzeFoodPhoto(imageUri) {
   try {
     console.log('Читаю фото...', imageUri);
 
+    // Загружаем фото и конвертируем в base64
     const response = await fetch(imageUri);
     const blob = await response.blob();
 
@@ -17,24 +21,24 @@ export async function analyzeFoodPhoto(imageUri) {
 
     console.log('Отправляю в Ollama...');
 
+    // Запрос к Ollama
     const ollamaResponse = await fetch(`${OLLAMA_URL}/api/generate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'llava',
+        model: MODEL_NAME || 'llava',
         prompt: `Look at this food photo carefully. Identify exactly what food is shown.
 Then calculate the realistic nutritional values for this specific food.
 Respond ONLY with a JSON object, no other text:
 {
-  "dish": "name of the dish in Russian",
-  "weight": estimated weight in grams as a number,
-  "calories": realistic calories for this portion as a number,
-  "protein": realistic protein in grams as a number,
-  "carbs": realistic carbs in grams as a number,
-  "fat": realistic fat in grams as a number,
-  "confidence": your confidence from 0 to 1
-}
-Do NOT use placeholder values. Analyze the actual food in the image.`,
+  "dish": "название блюда на русском",
+  "weight": число грамм,
+  "calories": число калорий,
+  "protein": число грамм белка,
+  "carbs": число грамм углеводов,
+  "fat": число грамм жиров,
+  "confidence": число от 0 до 1
+}`,
         images: [base64],
         stream: false,
         options: {
@@ -44,10 +48,14 @@ Do NOT use placeholder values. Analyze the actual food in the image.`,
       })
     });
 
-    console.log('Статус ответа:', ollamaResponse.status);
+    if (!ollamaResponse.ok) {
+      throw new Error(`Ошибка HTTP: ${ollamaResponse.status}`);
+    }
+
     const data = await ollamaResponse.json();
     console.log('Ответ Ollama:', data.response);
 
+    // Ищем JSON внутри ответа
     const jsonMatch = data.response.match(/\{[\s\S]*\}/);
     if (!jsonMatch) throw new Error('JSON не найден');
 
