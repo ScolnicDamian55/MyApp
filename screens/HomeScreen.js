@@ -7,6 +7,8 @@ import {
 import * as ImagePicker from 'expo-image-picker';
 import PhotoChoiceModal from '../components/PhotoChoiceModal';
 import { analyzeFoodPhoto } from '../services/FoodAI';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../services/firebase';
 
 const { width, height } = Dimensions.get('window');
 const BLUE = '#4A7BF7';
@@ -21,6 +23,7 @@ export default function HomeScreen({ route, navigation }) {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [meals, setMeals] = useState([]);
+  const [userData, setUserData] = useState(null);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const fabScale = useRef(new Animated.Value(0)).current;
@@ -29,7 +32,7 @@ export default function HomeScreen({ route, navigation }) {
 
   const params = route.params || {};
   const nestedPlan = params.plan || {};
-  const goalCalories = params.targetCalories || nestedPlan.targetCalories || params.weight || 2803;
+  const goalCalories = userData?.targetCalories || 0;
 
   const eaten = meals.reduce((sum, m) => sum + (m.calories || 0), 0);
   const remaining = goalCalories - eaten;
@@ -43,11 +46,27 @@ export default function HomeScreen({ route, navigation }) {
   const dayOfMonth = today.getDate();
 
   useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
-      Animated.spring(fabScale, { toValue: 1, delay: 400, friction: 5, useNativeDriver: true }),
-    ]).start();
-  }, []);
+  async function loadUserData() {
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        if (userDoc.exists()) {
+          setUserData(userDoc.data());
+          setMeals(userDoc.data().meals || []); // если хранишь приёмы пищи
+        }
+      }
+    } catch (e) {
+      console.warn('Ошибка загрузки профиля:', e);
+    }
+  }
+  loadUserData();
+
+  Animated.parallel([
+    Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
+    Animated.spring(fabScale, { toValue: 1, delay: 400, friction: 5, useNativeDriver: true }),
+  ]).start();
+}, []);
 
   const openAnalysis = (uri) => {
     setCurrentImage(uri);

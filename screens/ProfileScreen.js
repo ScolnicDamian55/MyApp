@@ -15,12 +15,12 @@ export default function ProfileScreen({ navigation }) {
   const [editableData, setEditableData] = useState({});
   const [reminder, setReminder] = useState(false);
 
-  const fadeAnim  = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(40)).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(fadeAnim,  { toValue: 1, duration: 600, useNativeDriver: true }),
+      Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
       Animated.timing(slideAnim, { toValue: 0, duration: 500, useNativeDriver: true }),
     ]).start();
 
@@ -68,6 +68,11 @@ export default function ProfileScreen({ navigation }) {
           onPress: async () => {
             try {
               await signOut(auth);
+              navigation.reset({
+                index: 0,
+                routes: [{ name: 'Login' }],
+              });
+
             } catch (e) {
               console.warn('Ошибка выхода:', e);
             }
@@ -192,8 +197,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     shadowColor: BLUE, shadowOpacity: 0.15, shadowRadius: 12, elevation: 4,
   },
-  userName: { 
-  fontSize: 20, fontWeight: '800', color: DARK, marginBottom: 4 
+  userName: {
+    fontSize: 20, fontWeight: '800', color: DARK, marginBottom: 4
   },
   avatarIcon: { fontSize: 40 },
   userEmail: { fontSize: 14, color: '#8E9BB5', marginBottom: 10 },
