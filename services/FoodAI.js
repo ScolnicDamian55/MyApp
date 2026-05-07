@@ -31,14 +31,15 @@ export async function analyzeFoodPhoto(imageUri) {
 Then calculate the realistic nutritional values for this specific food.
 Respond ONLY with a JSON object, no other text:
 {
-  "dish": "название блюда на русском",
-  "weight": число грамм,
-  "calories": число калорий,
-  "protein": число грамм белка,
-  "carbs": число грамм углеводов,
-  "fat": число грамм жиров,
-  "confidence": число от 0 до 1
-}`,
+  "dish": "name of the dish in Russian",
+  "weight": estimated weight in grams as a number,
+  "calories": realistic calories for this portion as a number,
+  "protein": realistic protein in grams as a number,
+  "carbs": realistic carbs in grams as a number,
+  "fat": realistic fat in grams as a number,
+  "confidence": your confidence from 0 to 1
+}
+Do NOT use placeholder values. Analyze the actual food in the image.`,
         images: [base64],
         stream: false,
         options: {
