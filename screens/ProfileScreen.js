@@ -56,31 +56,18 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
-  const handleLogout = () => {
-    Alert.alert(
-      'Выйти из аккаунта',
-      'Вы уверены что хотите выйти?',
-      [
-        { text: 'Отмена', style: 'cancel' },
-        {
-          text: 'Выйти',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await signOut(auth);
-              navigation.reset({
-                index: 0,
-                routes: [{ name: 'Login' }],
-              });
+  const handleLogout = async () => {
+  try {
+    await signOut(auth);
 
-            } catch (e) {
-              console.warn('Ошибка выхода:', e);
-            }
-          },
-        },
-      ]
-    );
-  };
+    // Принудительно отправляем на LoginScreen
+    navigation.replace('Login'); 
+    // navigation.navigate('Login'); тоже можно, но replace лучше — не оставляет "Назад"
+  } catch (e) {
+    console.warn('Ошибка выхода:', e);
+  }
+};
+
 
   return (
     <View style={styles.screen}>
